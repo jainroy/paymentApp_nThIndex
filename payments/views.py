@@ -54,31 +54,43 @@ def razorpay_webhook(request):
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)
 
-    webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
-    received_sig = request.headers.get('X-Razorpay-Signature')
-    body = request.body.decode('utf-8')
+    try:
+        webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+        received_sig = request.headers.get('X-Razorpay-Signature')
+        body = request.body.decode('utf-8')
 
-    generated_sig = hmac.new(
-        webhook_secret.encode(),
-        msg=body.encode(),
-        digestmod=hashlib.sha256
-    ).hexdigest()
+        # Log the raw body
+        print("Received webhook body:", body)
 
-    if received_sig != generated_sig:
-        return JsonResponse({'error': 'Invalid signature'}, status=400)
+        generated_sig = hmac.new(
+            webhook_secret.encode(),
+            msg=body.encode(),
+            digestmod=hashlib.sha256
+        ).hexdigest()
 
-    data = json.loads(body)
+        print("Generated Signature:", generated_sig)
+        print("Received Signature:", received_sig)
 
-    # ✅ Process captured payment
-    if data['event'] == "payment.captured":
-        payment_entity = data['payload']['payment']['entity']
-        payment_id = payment_entity['id']
-        amount = payment_entity['amount']
-        email = payment_entity.get('email')
+        if received_sig != generated_sig:
+            print("❌ Signature mismatch!")
+            return JsonResponse({'error': 'Invalid signature'}, status=400)
 
-        # You can update your database here
-        print(f"Webhook Payment Captured: {payment_id}, Amount: {amount}, Email: {email}")
+        data = json.loads(body)
 
-        # TODO: Update your Order model/payment record
+        print("✅ Webhook Event Type:", data.get('event'))
 
-    return JsonResponse({'status': 'success'})
+        if data.get('event') == "payment.captured":
+            payment_entity = data['payload']['payment']['entity']
+            payment_id = payment_entity['id']
+            amount = payment_entity['amount']
+            email = payment_entity.get('email', 'not provided')
+
+            print(f"✅ Payment Captured: ID={payment_id}, Amount={amount}, Email={email}")
+
+            # TODO: Update database here
+
+        return JsonResponse({'status': 'success'})
+
+    except Exception as e:
+        print("❌ Webhook error:", str(e))
+        return JsonResponse({'error': 'Internal Server Error'}, status=500)

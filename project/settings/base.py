@@ -14,6 +14,7 @@ ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", "").split(",")
 
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = config("RAZORPAY_WEBHOOK_SECRET")
 
 
 
@@ -42,8 +43,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'payments',
-    # 'corsheaders',
-
 ]
 
 
@@ -119,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
