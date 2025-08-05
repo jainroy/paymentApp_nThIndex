@@ -87,8 +87,6 @@ def razorpay_webhook(request):
 
             print(f"✅ Payment Captured: ID={payment_id}, Amount={amount}, Email={email}")
 
-            # TODO: Update database here
-
         return JsonResponse({'status': 'success'})
 
     except Exception as e:
